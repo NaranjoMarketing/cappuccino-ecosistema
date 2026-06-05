@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cappuccino - Consola Operativa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Poppins', sans-serif; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <header class="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto flex justify-between items-center w-full">
+            <div>
+                <h1 class="text-base font-bold text-amber-400 tracking-wide uppercase">The Cappuccino - Operaciones</h1>
+                <p class="text-[10px] text-slate-400">Punto Físico / Cocina y Salón</p>
+            </div>
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button onclick="cambiarFase('mesero')" id="tab-mesero" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950">👩‍🍳 MESERA</button>
+                <button onclick="cambiarFase('cocina')" id="tab-cocina" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400">🔥 COCINA</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto w-full p-6 flex-1">
+        
+        <div id="panel-mesero" class="block space-y-6">
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-wrap gap-4 items-center justify-between shadow-sm">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-400">Seleccionar Mesa:</span>
+                    <select id="mesero-mesa" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-amber-400 font-bold outline-none">
+                        <option value="Mesa 1">🪑 Mesa 1</option> <option value="Mesa 2">🪑 Mesa 2</option>
+                        <option value="Mesa 3">🪑 Mesa 3</option> <option value="Mesa 4">🪑 Mesa 4</option>
+                    </select>
+                </div>
+                <div class="text-right"><p class="text-xs text-slate-400">Subtotal Mesa</p><p id="mesero-total" class="text-xl font-bold text-emerald-400">$0</p></div>
+                <button id="mesero-btn-enviar" onclick="enviarComandaMesero()" disabled class="bg-slate-800 text-slate-500 px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all">Mandar Orden a Cocina</button>
+            </div>
+            <div id="mesero-grid-menu" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div id="panel-cocina" class="hidden space-y-4">
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Órdenes Activas en Fogon / Barra</h2>
+            <div id="cocina-lista" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+    </main>
+
+    <script>
+        const URL_API_GENERAL = "https://script.google.com/macros/s/AKfycbzXrdo3HcZE4HThKldaVfvoIV7pl-ptpRbV_QNi1Qk9ARVrHYsBFXFd6IoFLtoim3VS/exec";
+        let menuLocal = [], carritoMesero = {}, rolActivo = "mesero";
+
+        function cambiarFase(fase) {
+            rolActivo = fase;
+            document.getElementById('panel-mesero').classList.replace('block','hidden');
+            document.getElementById('panel-cocina').classList.replace('block','hidden');
+            document.getElementById('tab-mesero').className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-400";
+            document.getElementById('tab-cocina').className = "px-4 py-2 rounded-lg text-xs font-bold text-slate-400";
+
+            document.getElementById(`panel-${fase}`).classList.replace('hidden','block');
+            document.getElementById(`tab-${fase}`).className = "px-4 py-2 rounded-lg text-xs font-bold bg-amber-400 text-slate-950";
+            if(fase === "cocina") descargarPedidosCocina();
+        }
+
+        function cargarMenuMesero() {
+            const script = document.createElement('script');
+            script.src = `${URL_API_GENERAL}?tabla=menu&callback=recibirMenuMesero`;
+            document.body.appendChild(script);
+        }
+        function recibirMenuMesero(d) {
+            menuLocal = d; const grid = document.getElementById('mesero-grid-menu'); grid.innerHTML = "";
+            d.forEach(plato => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl flex justify-between items-center shadow-xs";
+                card.innerHTML = `<div><h4 class="font-bold text-xs text-slate-200">${plato.nombre}</h4><p class="text-xs text-amber-400 font-bold mt-0.5">$${Number(plato.precio).toLocaleString('es-CO')}</p></div>
+                    <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 p-1 rounded-lg">
+                        <button onclick="sumarMesero('${plato.id}', -1)" class="w-6 h-6 font-bold text-sm">-</button>
+                        <span id="mcant-${plato.id}" class="text-xs font-bold w-4 text-center">0</span>
+                        <button onclick="sumarMesero('${plato.id}', 1)" class="w-6 h-6 font-bold text-sm">+</button>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function sumarMesero(id, delta) {
+            const p = menuLocal.find(x => x.id === id); if(!p) return;
+            if(!carritoMesero[id]) carritoMesero[id] = { nombre: p.nombre, precio: Number(p.precio), databaseId: p.id, cantidad: 0 };
+            carritoMesero[id].cantidad += delta; if(carritoMesero[id].cantidad <= 0) delete carritoMesero[id];
+            document.getElementById(`mcant-${id}`).textContent = carritoMesero[id] ? carritoMesero[id].cantidad : 0;
+            recalcularMesero();
+        }
+
+        function recalcularMesero() {
+            let total = 0, items = 0; for(const id in carritoMesero) { total += carritoMesero[id].precio * carritoMesero[id].cantidad; items += carritoMesero[id].cantidad; }
+            document.getElementById('mesero-total').textContent = `$${total.toLocaleString('es-CO')}`;
+            const btn = document.getElementById('mesero-btn-enviar');
+            if(items > 0) { btn.disabled = false; btn.className = "bg-amber-400 text-slate-950 px-6 py-3 rounded-xl font-bold text-xs uppercase cursor-pointer shadow-md active:scale-95"; }
+            else { btn.disabled = true; btn.className = "bg-slate-800 text-slate-500 px-6 py-3 rounded-xl font-bold text-xs uppercase cursor-not-allowed shadow-none"; }
+        }
+
+        async function enviarComandaMesero() {
+            const mesa = document.getElementById('mesero-mesa').value;
+            let detalles = [], total = 0; for(const id in carritoMesero) { detalles.push(`${carritoMesero[id].cantidad}x ${carritoMesero[id].nombre}`); total += carritoMesero[id].precio * carritoMesero[id].cantidad; }
+            const payload = { origen: "mesero", detalles: detalles.join(" + "), tipo: mesa, total: total };
+            await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            alert("¡Comanda despachada con éxito a la cocina!");
+            carritoMesero = {}; recibirMenuMesero(menuLocal); recalcularMesero();
+        }
+
+        function descargarPedidosCocina() {
+            const script = document.createElement('script');
+            script.src = `${URL_API_GENERAL}?tabla=pedidos&callback=recibirPedidosCocina`;
+            document.body.appendChild(script);
+        }
+
+        function recibirPedidosCocina(pedidos) {
+            const cocinaList = document.getElementById('cocina-lista'); cocinaList.innerHTML = "";
+            const pendientesCocina = pedidos.filter(p => p.estado === "Cocina");
+            if(pendientesCocina.length === 0) cocinaList.innerHTML = "<p class='text-xs text-slate-600 col-span-full text-center py-8 italic bg-slate-900/30 rounded-xl border border-dashed border-slate-800'>Barra limpia. Sin comandas pendientes por cocinar.</p>";
+            
+            pendientesCocina.forEach(p => {
+                const d = document.createElement('div'); d.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between shadow-sm";
+                const sigEstado = p.tipo.includes("Mesa") ? "Servido" : "Entregado";
+                d.innerHTML = `<div><div class='flex justify-between mb-2'><span class='text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 font-bold uppercase'>${p.tipo}</span><span class='text-xs text-slate-500'>${p.hora}</span></div>
+                    ${p.observaciones ? `<p class='text-xs text-amber-500 italic mb-2 font-medium'>Obs: ${p.observaciones}</p>` : ''}
+                    <ul class='bg-slate-950 p-2.5 border border-slate-850 rounded-lg text-xs text-slate-200 mb-4 space-y-1'>${p.detalles.split(" + ").map(x=>`<li>• ${x}</li>`).join("")}</ul></div>
+                    <div class='flex gap-2'><button onclick="cambiarEstadoCocina('${p.id_pedido}', '${sigEstado}')" class='flex-1 bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider'>Despachar ✔</button>
+                    <button onclick="cambiarEstadoCocina('${p.id_pedido}', 'Cancelado')" class='text-rose-500 px-3 rounded-xl border border-slate-800 hover:bg-rose-950/20 text-xs font-bold'>✖</button></div>`;
+                cocinaList.appendChild(d);
+            });
+        }
+
+        async function cambiarEstadoCocina(id, nuevoEstado) {
+            const payload = { accion: "cambiar_estado", idPedido: id, nuevoEstado: nuevoEstado };
+            await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            setTimeout(descargarPedidosCocina, 400);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarMenuMesero();
+            setInterval(() => { if(rolActivo === "cocina") descargarPedidosCocina(); }, 8000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cappuccino - Caja Financiera</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        @media print { body { background: white; color: black; } #block-dashboard, #block-login, #alerta-comentario { display: none !important; } #print-area { display: block !important; } }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-center items-center p-4">
+
+    <div id="block-login" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+        <div class="text-center"><h2 class="text-xl font-bold text-amber-400 uppercase tracking-wide">Control de Caja Pro</h2><p class="text-xs text-slate-400 mt-0.5">Ingresa tus credenciales administrativas</p></div>
+        <div class="space-y-3">
+            <input type="text" id="login-user" placeholder="Usuario" class="w-full bg-slate-950 border p-3 rounded-xl text-xs outline-none text-slate-200">
+            <input type="password" id="login-pass" placeholder="Contraseña" class="w-full bg-slate-950 border p-3 rounded-xl text-xs outline-none text-slate-200">
+            <button onclick="validarAccesoCaja()" class="w-full bg-amber-500 text-slate-950 font-bold py-3 rounded-xl text-xs uppercase shadow-md">Iniciar Turno</button>
+        </div>
+    </div>
+
+    <div id="block-dashboard" class="hidden w-full max-w-6xl flex flex-col gap-6">
+        <header class="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-md">
+            <div>
+                <h1 class="text-lg font-bold text-amber-400 tracking-wide uppercase">The Cappuccino - Caja del Dueño</h1>
+                <div class="flex items-center gap-2 mt-1.5">
+                    <span class="text-[11px] text-stone-400 uppercase font-semibold">Base de Apertura ($):</span>
+                    <input type="number" id="base-caja-input" value="50000" onchange="calcularMétricasLocales()" class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs font-bold text-emerald-400 w-28 outline-none">
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 justify-center">
+                <button onclick="ejecutarCierreCajaDiario()" class="bg-emerald-500 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider">🏁 Cierre Diario</button>
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button onclick="cambiarSubModulo('cobros')" id="sub-cobros" class="bg-amber-500 text-slate-950 text-[10px] font-bold px-3 py-1.5 rounded-lg">COBROS</button>
+                    <button onclick="cambiarSubModulo('gastos')" id="sub-gastos" class="text-slate-400 text-[10px] font-bold px-3 py-1.5 rounded-lg">GASTOS</button>
+                    <button onclick="cambiarSubModulo('creditos')" id="sub-creditos" class="text-slate-400 text-[10px] font-bold px-3 py-1.5 rounded-lg">CREDITOS</button>
+                    <button onclick="cambiarSubModulo('menu-manager')" id="sub-menu-manager" class="text-slate-400 text-[10px] font-bold px-3 py-1.5 rounded-lg">📋 MENÚ</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-900 border p-4 rounded-2xl"><p class="text-[10px] font-bold uppercase text-slate-500">Ingresos Hoy</p><p id="metric-hoy" class="text-2xl font-bold text-emerald-400 mt-1">$0</p></div>
+            <div class="bg-slate-900 border p-4 rounded-2xl"><p class="text-[10px] font-bold uppercase text-slate-500">Gastos Hoy</p><p id="metric-gastos" class="text-2xl font-bold text-rose-400 mt-1">$0</p></div>
+            <div class="bg-slate-900 border p-4 rounded-2xl"><p class="text-[10px] font-bold uppercase text-slate-500">Cartera a Crédito</p><p id="metric-creditos" class="text-2xl font-bold text-sky-400 mt-1">$0</p></div>
+            <div class="bg-slate-900 border p-4 rounded-2xl"><p class="text-[10px] font-bold uppercase text-amber-500">⭐ Producto Estrella</p><p id="metric-top" class="text-xs font-bold text-slate-200 mt-2 truncate">Calculando...</p></div>
+        </div>
+
+        <div id="modulo-cobros" class="block grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-4">
+                    <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">🌐 Domicilios (Pre-pago)</h2>
+                    <div id="lista-caja-prepago" class="space-y-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-slate-800 pb-2">🪑 Mesas (Post-pago)</h2>
+                    <div id="lista-caja-postpago" class="space-y-4"></div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl h-max space-y-3">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b pb-2"><i class="fas fa-bullhorn"></i> Flyer de Eventos / Promoción</h3>
+                <p class="text-[11px] text-stone-400">Sube el flyer promocional de la semana. Se reflejará de inmediato en la landing de los clientes.</p>
+                <div class="p-1"><input type="file" id="flyer-file-input" accept="image/*" class="w-full text-xs text-stone-400 file:bg-amber-50 file:text-amber-950"></div>
+                <button onclick="procesarYSubirFlyer()" class="w-full bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs uppercase tracking-wide shadow-md">Actualizar Flyer</button>
+            </div>
+        </div>
+
+        <div id="modulo-gastos" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl h-max space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2">Anotar Gasto Diario</h3>
+                <input type="text" id="gasto-concepto" placeholder="Concepto..." class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none">
+                <select id="gasto-categoria" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none text-slate-400"><option value="Insumos">🍓 Alimentos</option><option value="Servicios">⚡ Servicios</option></select>
+                <input type="number" id="gasto-valor" placeholder="Monto ($)" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none">
+                <button onclick="guardarGastoCaja()" class="w-full bg-rose-500/20 text-rose-400 border font-bold py-2.5 rounded-xl text-xs uppercase">Registrar Salida</button>
+            </div>
+            <div class="lg:col-span-2 space-y-2"><div id="lista-gastos-tabla" class="space-y-2"></div></div>
+        </div>
+
+        <div id="modulo-creditos" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-slate-900 border p-5 rounded-2xl h-max space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2">Abrir Crédito</h3>
+                <input type="text" id="cre-cliente" placeholder="Nombre" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="text" id="cre-direccion" placeholder="Dirección" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="tel" id="cre-whatsapp" placeholder="WhatsApp" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="text" id="cre-detalles" placeholder="Concepto..." class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="number" id="cre-total" placeholder="Valor ($)" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="number" id="cre-dias" placeholder="Días Plazo" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none">
+                <button onclick="guardarNuevoCredito()" class="w-full bg-sky-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs uppercase">Abrir Crédito</button>
