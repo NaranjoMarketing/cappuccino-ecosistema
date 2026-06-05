@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cappuccino - Caja Financiera</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        @media print { body { background: white; color: black; } #block-dashboard, #block-login, #alerta-comentario { display: none !important; } #print-area { display: block !important; } }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-center items-center p-4">
+
+    <div id="block-login" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+        <div class="text-center"><h2 class="text-xl font-bold text-amber-400 uppercase tracking-wide">Control de Caja Pro</h2><p class="text-xs text-slate-400 mt-0.5">Ingresa tus credenciales administrativas</p></div>
+        <div class="space-y-3">
+            <input type="text" id="login-user" placeholder="Usuario" class="w-full bg-slate-950 border p-3 rounded-xl text-xs outline-none text-slate-200">
+            <input type="password" id="login-pass" placeholder="Contraseña" class="w-full bg-slate-950 border p-3 rounded-xl text-xs outline-none text-slate-200">
+            <button onclick="validarAccesoCaja()" class="w-full bg-amber-500 text-slate-950 font-bold py-3 rounded-xl text-xs uppercase shadow-md">Iniciar Turno</button>
+        </div>
+    </div>
+
+    <div id="block-dashboard" class="hidden w-full max-w-6xl flex flex-col gap-6">
+        <header class="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-md">
+            <div>
+                <h1 class="text-lg font-bold text-amber-400 tracking-wide uppercase">The Cappuccino - Caja del Dueño</h1>
+                <div class="flex items-center gap-2 mt-1.5">
+                    <span class="text-[11px] text-stone-400 uppercase font-semibold">Base de Apertura ($):</span>
+                    <input type="number" id="base-caja-input" value="50000" onchange="calcularMétricasLocales()" class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs font-bold text-emerald-400 w-28 outline-none">
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 justify-center">
+                <button onclick="ejecutarCierreCajaDiario()" class="bg-emerald-500 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider">🏁 Cierre Diario</button>
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button onclick="cambiarSubModulo('cobros')" id="sub-cobros" class="bg-amber-500 text-slate-950 text-[10px] font-bold px-3 py-1.5 rounded-lg">COBROS</button>
+                    <button onclick="cambiarSubModulo('gastos')" id="sub-gastos" class="text-slate-400 text-[10px] font-bold px-3 py-1.5 rounded-lg">GASTOS</button>
+                    <button onclick="cambiarSubModulo('creditos')" id="sub-creditos" class="text-slate-400 text-[10px] font-bold px-3 py-1.5 rounded-lg">CREDITOS</button>
+                    <button onclick="cambiarSubModulo('menu-manager')" id="sub-menu-manager" class="text-slate-400 text-[10px] font-bold px-3 py-1.5 rounded-lg">📋 MENÚ</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-900 border p-4 rounded-2xl"><p class="text-[10px] font-bold uppercase text-slate-500">Ingresos Hoy</p><p id="metric-hoy" class="text-2xl font-bold text-emerald-400 mt-1">$0</p></div>
+            <div class="bg-slate-900 border p-4 rounded-2xl"><p class="text-[10px] font-bold uppercase text-slate-500">Gastos Hoy</p><p id="metric-gastos" class="text-2xl font-bold text-rose-400 mt-1">$0</p></div>
+            <div class="bg-slate-900 border p-4 rounded-2xl"><p class="text-[10px] font-bold uppercase text-slate-500">Cartera a Crédito</p><p id="metric-creditos" class="text-2xl font-bold text-sky-400 mt-1">$0</p></div>
+            <div class="bg-slate-900 border p-4 rounded-2xl"><p class="text-[10px] font-bold uppercase text-amber-500">⭐ Producto Estrella</p><p id="metric-top" class="text-xs font-bold text-slate-200 mt-2 truncate">Calculando...</p></div>
+        </div>
+
+        <div id="modulo-cobros" class="block grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-4">
+                    <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">🌐 Domicilios (Pre-pago)</h2>
+                    <div id="lista-caja-prepago" class="space-y-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-slate-800 pb-2">🪑 Mesas (Post-pago)</h2>
+                    <div id="lista-caja-postpago" class="space-y-4"></div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl h-max space-y-3">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b pb-2"><i class="fas fa-bullhorn"></i> Flyer de Eventos / Promoción</h3>
+                <p class="text-[11px] text-stone-400">Sube el flyer promocional de la semana. Se reflejará de inmediato en la landing de los clientes.</p>
+                <div class="p-1"><input type="file" id="flyer-file-input" accept="image/*" class="w-full text-xs text-stone-400 file:bg-amber-50 file:text-amber-950"></div>
+                <button onclick="procesarYSubirFlyer()" class="w-full bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs uppercase tracking-wide shadow-md">Actualizar Flyer</button>
+            </div>
+        </div>
+
+        <div id="modulo-gastos" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl h-max space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2">Anotar Gasto Diario</h3>
+                <input type="text" id="gasto-concepto" placeholder="Concepto..." class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none">
+                <select id="gasto-categoria" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none text-slate-400"><option value="Insumos">🍓 Alimentos</option><option value="Servicios">⚡ Servicios</option></select>
+                <input type="number" id="gasto-valor" placeholder="Monto ($)" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none">
+                <button onclick="guardarGastoCaja()" class="w-full bg-rose-500/20 text-rose-400 border font-bold py-2.5 rounded-xl text-xs uppercase">Registrar Salida</button>
+            </div>
+            <div class="lg:col-span-2 space-y-2"><div id="lista-gastos-tabla" class="space-y-2"></div></div>
+        </div>
+
+        <div id="modulo-creditos" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-slate-900 border p-5 rounded-2xl h-max space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2">Abrir Crédito</h3>
+                <input type="text" id="cre-cliente" placeholder="Nombre" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="text" id="cre-direccion" placeholder="Dirección" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="tel" id="cre-whatsapp" placeholder="WhatsApp" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="text" id="cre-detalles" placeholder="Concepto..." class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="number" id="cre-total" placeholder="Valor ($)" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none"><input type="number" id="cre-dias" placeholder="Días Plazo" class="w-full bg-slate-950 border p-2.5 rounded-xl text-xs outline-none">
+                <button onclick="guardarNuevoCredito()" class="w-full bg-sky-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs uppercase">Abrir Crédito</button>
+            </div>
+            <div class="lg:col-span-2 space-y-3"><div id="lista-creditos-tabla" class="space-y-3"></div></div>
+        </div>
+
+        <div id="modulo-menu-manager" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl h-max space-y-3">
+                <h3 id="form-menu-title" class="text-xs font-bold text-amber-400 uppercase tracking-wider border-b pb-2">Agregar Nuevo Plato</h3>
+                <input type="hidden" id="edit-plato-id" value="">
+                <input type="hidden" id="edit-plato-img-actual" value="">
+                <input type="text" id="menu-nombre" placeholder="Nombre del Plato" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-xs outline-none">
+                <input type="number" id="menu-precio" placeholder="Precio ($)" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-xs outline-none">
+                <select id="menu-categoria" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-xs outline-none text-slate-400"><option value="desayunos">🍳 Desayunos</option><option value="almuerzos">🍲 Almuerzos</option><option value="fritos">🥟 Fritos</option></select>
+                <textarea id="menu-descripcion" placeholder="Descripción deleitante..." class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-xs outline-none h-16"></textarea>
+                <div class="p-0.5"><input type="file" id="menu-foto-input" accept="image/*" class="w-full text-xs text-stone-400 file:bg-amber-50 file:text-amber-950"></div>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="limpiarFormularioMenu()" class="w-1/3 bg-slate-950 border text-slate-400 py-2 rounded-xl text-xs uppercase">Limpiar</button>
+                    <button onclick="procesarYGuardarPlato()" class="flex-1 bg-amber-500 text-slate-950 font-bold py-2 rounded-xl text-xs uppercase tracking-wide shadow-md">Guardar</button>
+                </div>
+            </div>
+            <div class="lg:col-span-2 space-y-3"><div id="lista-platos-crud" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div></div>
+        </div>
+    </div>
+
+    <div id="alerta-comentario" class="fixed bottom-6 right-6 bg-gradient-to-r from-amber-600 to-amber-800 border-2 border-amber-400 text-white p-4 rounded-2xl shadow-2xl z-50 max-w-sm hidden animate-bounce">
+        <div class="flex items-start gap-3">
+            <div class="bg-amber-950 p-2.5 rounded-xl text-amber-400"><i class="fas fa-bell text-xl animate-pulse"></i></div>
+            <div class="flex-1">
+                <h4 class="font-bold text-sm text-amber-300 uppercase tracking-wide flex items-center gap-1.5">¡Nuevo Comentario!</h4>
+                <p class="text-xs text-stone-100 mt-1 leading-relaxed">Un cliente acaba de dejar una opinión y calificación con estrellas sobre el lugar. Revisa la pestaña de reseñas en el Sheets.</p>
+                <div class="flex gap-2 mt-3 justify-end">
+                    <button onclick="cerrarAlertaComentario()" class="bg-amber-950 text-amber-400 px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-amber-900/60 transition-colors hover:bg-amber-900">Entendido / Revisar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="print-area" class="hidden text-black bg-white p-6 max-w-sm w-full font-mono text-sm leading-relaxed"></div>
+
+    <script>
+        const URL_API_GENERAL = "https://script.google.com/macros/s/AKfycbzXrdo3HcZE4HThKldaVfvoIV7pl-ptpRbV_QNi1Qk9ARVrHYsBFXFd6IoFLtoim3VS/exec";
+        let cachePedidos = [], cacheGastos = [], cacheMenu = [], totalResenasPrevio = null;
+
+        function validarAccesoCaja() {
+            const u = document.getElementById('login-user').value; const p = document.getElementById('login-pass').value;
+            if(u === "admin" && p === "cappuccino2026") {
+                document.getElementById('block-login').className = "hidden";
+                document.getElementById('block-dashboard').className = "w-full max-w-6xl flex flex-col gap-6 animate-fade-in";
+                document.body.className = "bg-slate-950 text-slate-100 min-h-screen p-6";
+                descargarDataCaja(); setInterval(descargarDataCaja, 9000);
+            } else { alert("Acceso denegado."); }
+        }
+
+        function procesarYSubirFlyer() {
+            const archivo = document.getElementById('flyer-file-input').files[0]; if(!archivo) return;
+            const lector = new FileReader(); lector.onload = async function(e) {
+                const payload = { accion: "actualizar_flyer", fotoBase64: e.target.result };
+                await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                alert("¡Flyer Promocional actualizado!"); document.getElementById('flyer-file-input').value = "";
+            }; lector.readAsDataURL(archivo);
+        }
+
+        function cambiarSubModulo(modulo) {
+            document.getElementById('modulo-cobros').style.display = modulo === 'cobros' ? 'grid' : 'none';
+            document.getElementById('modulo-gastos').style.display = modulo === 'gastos' ? 'grid' : 'none';
+            document.getElementById('modulo-creditos').style.display = modulo === 'creditos' ? 'grid' : 'none';
+            document.getElementById('modulo-menu-manager').style.display = modulo === 'menu-manager' ? 'grid' : 'none';
+            document.querySelectorAll('header button').forEach(b => { if(b.id) b.className = "text-slate-400 text-[10px] font-bold px-3 py-1.5 rounded-lg"; });
+            document.getElementById(`sub-${modulo}`).className = "bg-amber-500 text-slate-950 text-[10px] font-bold px-3 py-1.5 rounded-lg";
+        }
+
+        function descargarDataCaja() {
+            // Hilo 1: Consultar órdenes y mesas
+            const script = document.createElement('script'); script.src = `${URL_API_GENERAL}?tabla=pedidos&callback=recibirPedidosMatriz`; document.body.appendChild(script);
+            
+            // Hilo 2: Consultar reseñas para el aviso en tiempo real
+            descargarSubTabla("resenas", verificarNuevasResenasServidor);
+        }
+
+        // ALGORITMO OMNIPRESENTE LECTOR DE RESEÑAS EN SEGUNDO PLANO
+        function verificarNuevasResenasServidor(res) {
+            if (res && res.total_resenas !== undefined) {
+                const cuentaActual = Number(res.total_resenas);
+                // Si la cuenta previa ya existía y es menor que la del servidor, disparamos el aviso
+                if (totalResenasPrevio !== null && cuentaActual > totalResenasPrevio) {
+                    document.getElementById('alerta-comentario').classList.remove('hidden');
+                }
+                totalResenasPrevio = cuentaActual; // Respaldamos la marca para el próximo ciclo de 9 segundos
+            }
+        }
+
+        function cerrarAlertaComentario() {
+            document.getElementById('alerta-comentario').classList.add('hidden');
+        }
+
+        function recibirPedidosMatriz(pedidos) {
+            cachePedidos = pedidos;
+            const boxPrepago = document.getElementById('lista-caja-prepago'); boxPrepago.innerHTML = "";
+            const preFiltrados = pedidos.filter(p => p.estado === "Pendiente_Pago");
+            preFiltrados.forEach(p => {
+                const d = document.createElement('div'); d.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1.5 shadow-2xs";
+                d.innerHTML = `<div class='flex justify-between'><span class='text-xs font-bold text-amber-400'>${p.id_pedido}</span></div>
+                    <p class='text-xs text-slate-200'>${p.cliente} (${p.tipo}) - ${p.detalles}</p>
+                    <div class='flex justify-between items-center pt-2 border-t border-slate-800/60'><span class='text-sm font-bold text-emerald-400'>$${Number(p.total).toLocaleString('es-CO')}</span>
+                        <button onclick="cambiarEstadoCentral('${p.id_pedido}', 'Cocina')" class='bg-emerald-500 text-slate-950 font-bold px-3 py-1 rounded-lg text-[10px] uppercase'>Aceptar Pago</button>
+                    </div>`;
+                boxPrepago.appendChild(d);
+            });
+
+            const boxPostpago = document.getElementById('lista-caja-postpago'); boxPostpago.innerHTML = "";
+            const postFiltrados = pedidos.filter(p => p.tipo.includes("Mesa") && (p.estado === "Cocina" || p.estado === "Servido"));
+            postFiltrados.forEach(p => {
+                const d = document.createElement('div'); d.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1.5 shadow-2xs";
+                d.innerHTML = `<div class='flex justify-between items-center'><span class='text-xs font-bold text-emerald-400'>${p.tipo}</span></div>
+                    <p class='text-xs text-slate-300'>${p.detalles}</p>
+                    <div class='flex justify-between items-center pt-2 border-t border-slate-800'><span class='text-sm font-bold text-emerald-400'>$${Number(p.total).toLocaleString('es-CO')}</span>
+                        <button onclick='cambiarEstadoCentral("${p.id_pedido}", "Finalizado")' class='bg-emerald-500 text-slate-950 font-bold px-4 py-1.5 rounded-lg text-[10px] uppercase'>Cobrar</button>
+                    </div>`;
+                boxPostpago.appendChild(d);
+            });
+            calcularMétricasLocales();
+            descargarSubTabla("gastos", recibirGastos);
+            if(subModuloActivo === "menu-manager") descargarSubTabla("menu", recibirMenuAdmin);
+        }
+
+        function recibirMenuAdmin(menu) {
+            cacheMenu = menu; const grid = document.getElementById('lista-platos-crud'); grid.innerHTML = "";
+            menu.forEach(p => {
+                const d = document.createElement('div'); d.className = "bg-slate-900 border border-slate-800 p-3 rounded-xl flex gap-3 items-center";
+                d.innerHTML = `<img src="${p.imagen}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0"><div class="flex-1 min-w-0"><h4 class="font-bold text-xs text-slate-200 truncate">${p.nombre}</h4><span class="text-xs font-bold text-amber-400">$${Number(p.precio).toLocaleString('es-CO')}</span></div><div class="flex flex-col gap-1"><button onclick="cargarPlatoParaEditar('${p.id}')" class="bg-slate-950 p-1 text-[10px] border rounded text-sky-400">Editar</button><button onclick="eliminarPlatoServidor('${p.id}')" class="bg-slate-950 p-1 text-[10px] border rounded text-rose-400">Quitar</button></div>`;
+                grid.appendChild(d);
+            });
+        }
+        function cargarPlatoParaEditar(id) { const p = cacheMenu.find(x => x.id === id); if(!p) return; document.getElementById('form-menu-title').textContent = "Editar Plato"; document.getElementById('edit-plato-id').value = p.id; document.getElementById('edit-plato-img-actual').value = p.imagen; document.getElementById('menu-nombre').value = p.nombre; document.getElementById('menu-precio').value = p.precio; document.getElementById('menu-categoria').value = p.categoria; document.getElementById('menu-descripcion').value = p.descripcion; }
+        function limpiarFormularioMenu() { document.getElementById('form-menu-title').textContent = "Agregar Nuevo Plato"; document.getElementById('edit-plato-id').value = ""; document.getElementById('edit-plato-img-actual').value = ""; document.getElementById('menu-nombre').value = ""; document.getElementById('menu-precio').value = ""; document.getElementById('menu-descripcion').value = ""; document.getElementById('menu-foto-input').value = ""; }
+        function procesarYGuardarPlato() { const id = document.getElementById('edit-plato-id').value; const imgActual = document.getElementById('edit-plato-img-actual').value; const n = document.getElementById('menu-nombre').value; const price = document.getElementById('menu-precio').value; const cat = document.getElementById('menu-categoria').value; const desc = document.getElementById('menu-descripcion').value; const archivo = document.getElementById('menu-foto-input').files[0]; if(!n || !price) return; const basePayload = { accion: "guardar_plato_completo", idPlato: id, nombre: n, precio: Number(price), categoria: cat, descripcion: desc, imagenActual: imgActual, fotoBase64: "" }; if(archivo) { const lector = new FileReader(); lector.onload = async function(e) { basePayload.fotoBase64 = e.target.result; await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(basePayload) }); alert("Guardado!"); limpiarFormularioMenu(); descargarDataCaja(); }; lector.readAsDataURL(archivo); } else { fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(basePayload) }).then(() => { alert("Guardado!"); limpiarFormularioMenu(); descargarDataCaja(); }); } }
+        async function eliminarPlatoServidor(idPlato) { if(!confirm("¿Eliminar?")) return; const payload = { accion: "eliminar_plato", idPlato: idPlato }; await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); descargarDataCaja(); }
+
+        function calcularMétricasLocales() { let totalHoy = 0; const hoyString = new Date().toLocaleDateString('es-CO'); cachePedidos.forEach(p => { const ts = parseInt(p.id_pedido.split('-')[1]); if(!isNaN(ts) && new Date(ts).toLocaleDateString('es-CO') === hoyString && p.estado === "Finalizado") totalHoy += Number(p.total); }); document.getElementById('metric-hoy').textContent = `$${totalHoy.toLocaleString('es-CO')}`; }
+        function descargarSubTabla(tabla, callbackName) { const script = document.createElement('script'); script.src = `${URL_API_GENERAL}?tabla=${tabla}&callback=${callbackName.name}`; document.body.appendChild(script); }
+        async function guardarGastoCaja() { const c = document.getElementById('gasto-concepto').value; const cat = document.getElementById('gasto-categoria').value; const v = document.getElementById('gasto-valor').value; if(!c || !v) return; const payload = { accion: "registrar_gasto", concepto: c, categoria: cat, valor: Number(v) }; await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); descargarDataCaja(); }
+        function recibirGastos(gastos) { cacheGastos = gastos; const box = document.getElementById('lista-gastos-tabla'); box.innerHTML = ""; let sum = 0; gastos.forEach(g => { sum += Number(g.valor); }); document.getElementById('metric-gastos').textContent = `$${sum.toLocaleString('es-CO')}`; }
+        async function guardarNuevoCredito() { const cli = document.getElementById('cre-cliente').value; const dir = document.getElementById('cre-direccion').value; const wa = document.getElementById('cre-whatsapp').value; const det = document.getElementById('cre-detalles').value; const tot = document.getElementById('cre-total').value; const dias = document.getElementById('cre-dias').value; if(!cli || !wa || !tot) return; const payload = { accion: "registrar_credito", cliente: cli, direccion: dir, whatsapp: wa, detalles: det, total: Number(tot), dias: Number(dias) }; await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); descargarDataCaja(); }
+        function recibirCreditos(creditos) { const box = document.getElementById('lista-creditos-tabla'); box.innerHTML = ""; let sum = 0; creditos.forEach(c => { sum += Number(c.saldo_pendiente); }); document.getElementById('metric-creditos').textContent = `$${sum.toLocaleString('es-CO')}`; }
+        async function cambiarEstadoCentral(id, nuevoEstado) { const payload = { accion: "cambiar_estado", idPedido: id, nuevoEstado: nuevoEstado }; await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); setTimeout(descargarDataCaja, 400); }
+    </script>
+</body>
+</html>
