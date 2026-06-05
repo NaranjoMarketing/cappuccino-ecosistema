@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafetería The Cappuccino - Sitio Oficial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #fafaf9; }
+        .font-brand { font-family: 'Playfair Display', serif; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scroll-bar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <div id="vista-inicio" class="block w-full flex-1">
+        <section class="relative h-64 md:h-80 bg-amber-950 flex items-center justify-center text-center px-4 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1200&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-35">
+            <div class="absolute inset-0 bg-gradient-to-t from-amber-950 via-amber-950/20 to-transparent"></div>
+            <div class="relative z-10 max-w-xl mx-auto">
+                <span class="text-[10px] bg-amber-500 text-amber-950 px-3 py-1 rounded-full font-bold uppercase tracking-widest shadow-sm">Sabor y Tradición</span>
+                <h1 class="text-4xl font-extrabold font-brand text-amber-400 tracking-wide mt-3 uppercase">The Cappuccino</h1>
+                <div class="flex justify-center items-center gap-1.5 mt-2 bg-black/40 backdrop-blur-xs px-3 py-1 rounded-full w-max mx-auto border border-white/10">
+                    <i class="fas fa-star text-amber-400 text-xs"></i><span id="label-promedio-header" class="text-xs font-bold text-white">5.0</span><span id="label-conteo-header" class="text-[10px] text-stone-300">(0 Valoraciones)</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="container-flyer-promocional" class="hidden max-w-4xl mx-auto px-4 pt-6 animate-fade-in">
+            <div class="bg-amber-50 rounded-2xl border border-amber-200/60 p-2 overflow-hidden shadow-2xs">
+                <img id="img-flyer-promocional" src="" class="w-full h-auto max-h-80 rounded-xl object-contain mx-auto shadow-sm" alt="Promoción Especial">
+            </div>
+        </section>
+
+        <div class="max-w-4xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div class="space-y-4">
+                <p class="text-sm text-stone-600 leading-relaxed font-light">
+                    Un rincón acogedor en el corazón de **Inírida**, diseñado para los amantes del buen café y las tradiciones de nuestra tierra. Aquí el aroma del desayuno fresco, los fritos crujientes y los almuerzos ejecutivos te dan la bienvenida cada mañana.
+                </p>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="abrirQR()" class="bg-white border p-2 rounded-xl text-center shadow-2xs"><i class="fas fa-qrcode text-amber-900"></i><p class="text-[9px] font-bold text-stone-500 uppercase mt-0.5">QR</p></button>
+                    <a id="vcard-btn" href="#" download="TheCappuccino.vcf" class="bg-white border p-2 rounded-xl text-center block shadow-2xs"><i class="fas fa-address-card text-amber-900"></i><p class="text-[9px] font-bold text-stone-500 uppercase mt-0.5">Guardar</p></a>
+                    <button onclick="abrirPWA()" class="bg-white border p-2 rounded-xl shadow-2xs text-center"><i class="fas fa-mobile-screen text-amber-900"></i><p class="text-[9px] font-bold text-stone-500 uppercase mt-0.5">Instalar</p></button>
+                </div>
+                <a href="https://wa.me/573112148479?text=Hola%20The%20Cappuccino!%20Me%20gustaría%20conocer%20las%20delicias%20y%20especiales%20del%20día%20para%20hacer%20un%20pedido." target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs tracking-wider uppercase transition-colors"><i class="fab fa-whatsapp"></i> Contactar con un Asesor Comercial</a>
+                <button onclick="irAMenu()" class="w-full bg-amber-950 text-amber-400 font-bold py-4 px-6 rounded-2xl text-sm shadow-md uppercase tracking-wider active:scale-95 flex items-center justify-center gap-2"><i class="fas fa-utensils"></i> Hacer Pedido / Ver Menú</button>
+
+                <div class="bg-white border p-4 rounded-xl shadow-2xs space-y-2">
+                    <h3 class="text-xs font-bold text-stone-500 uppercase tracking-wider">⭐ Califica la Cafetería</h3>
+                    <div class="flex gap-2 text-stone-300 text-lg py-1">
+                        <i onclick="setStars(1)" class="star-icon fas fa-star cursor-pointer transition-colors"></i>
+                        <i onclick="setStars(2)" class="star-icon fas fa-star cursor-pointer transition-colors"></i>
+                        <i onclick="setStars(3)" class="star-icon fas fa-star cursor-pointer transition-colors"></i>
+                        <i onclick="setStars(4)" class="star-icon fas fa-star cursor-pointer transition-colors"></i>
+                        <i onclick="setStars(5)" class="star-icon fas fa-star cursor-pointer transition-colors"></i>
+                    </div>
+                    <input type="text" id="resena-nombre" placeholder="Tu Nombre" class="w-full bg-stone-50 border p-2 rounded-lg text-xs outline-none">
+                    <textarea id="resena-comentario" placeholder="Escribe tu opinión pública..." class="w-full bg-stone-50 border p-2 rounded-lg text-xs outline-none h-14"></textarea>
+                    
+                    <div class="p-1">
+                        <label class="block text-[10px] font-bold text-stone-500 uppercase mb-1 tracking-wide text-amber-950">Sube la foto de lo que te gustó del lugar:</label>
+                        <input type="file" id="resena-foto-input" accept="image/*" class="w-full text-xs text-stone-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:bg-amber-50 file:text-amber-900 font-medium">
+                    </div>
+                    
+                    <button onclick="procesarYEnviarResena()" class="w-full bg-stone-800 text-white font-bold py-2 rounded-lg text-xs uppercase tracking-wider">Publicar Reseña</button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Especialidades Destacadas</span>
+                <div class="flex md:grid md:grid-cols-1 gap-4 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory">
+                    <div class="w-72 md:w-full bg-white border rounded-2xl overflow-hidden shadow-2xs flex-shrink-0 snap-center flex flex-col sm:flex-row">
+                        <img src="https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=400&auto=format&fit=crop" class="w-full sm:w-32 h-36 object-cover">
+                        <div class="p-4 flex flex-col justify-between flex-1">
+                            <div><h4 class="font-bold text-stone-800 text-sm">Combo Calentao Criollo</h4><p class="text-[11px] text-stone-500 mt-1 leading-relaxed">Arroz con fríjol de la casa, huevo frito con yema derretida, arepa blanca caliente.</p></div>
+                            <span class="text-xs font-bold text-amber-950 mt-2 block">$12.000 COP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="vista-menu" class="hidden w-full flex-1 flex flex-col">
+        <header class="bg-amber-950 text-white shadow-md sticky top-0 z-40"><div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center w-full"><button onclick="irAInicio()" class="text-xs text-amber-300 bg-amber-900/40 px-3 py-1.5 rounded-xl border border-amber-800/60">⬅️ Volver</button><h1 class="text-base font-bold text-amber-400 font-brand">THE CAPPUCCINO</h1></div></header>
+        <main class="max-w-4xl mx-auto w-full px-4 pt-4 flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div class="bg-white rounded-2xl p-4 border border-slate-100 space-y-3 md:sticky md:top-[85px]">
+                <h3 class="text-xs font-bold text-stone-400 uppercase tracking-wider border-b pb-1">Datos de Despacho</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase">Modalidad</label><select id="tipo-pedido" onchange="calcularTotal()" class="w-full bg-stone-50 border rounded-lg p-2 text-xs outline-none"><option value="Domicilio">🛵 Domicilio (+$3.000)</option><option value="Para Llevar">🛍️ Para Llevar</option></select></div>
+                    <div><label class="block text-[10px] font-bold text-stone-500 uppercase">Método Pago</label><select id="pago-pedido" class="w-full bg-stone-50 border rounded-lg p-2 text-xs outline-none"><option value="Efectivo">💵 Efectivo</option><option value="Transferencia">📱 Transferencia</option></select></div>
+                </div>
+                <input type="text" id="nombre-cliente" placeholder="Nombre Completo" class="w-full bg-stone-50 border rounded-lg p-2 text-xs outline-none"><input type="text" id="dir-cliente" placeholder="Dirección Exacta" class="w-full bg-stone-50 border rounded-lg p-2 text-xs outline-none"><input type="tel" id="tel-cliente" placeholder="WhatsApp" class="w-full bg-stone-50 border rounded-lg p-2 text-xs outline-none"><textarea id="obs-cliente" placeholder="Observaciones particulares..." class="w-full bg-stone-50 border rounded-lg p-2 text-xs outline-none h-14"></textarea>
+            </div>
+            <div class="md:col-span-2 space-y-3">
+                <div class="flex overflow-x-auto pb-1 gap-2 scrollbar-none sticky top-[65px] bg-[#fafaf9] md:top-0 py-2 z-30 border-b">
+                    <button onclick="filtrarMenu('todos', event)" class="menu-btn active bg-amber-950 text-white px-5 py-2 rounded-full font-medium text-xs whitespace-nowrap">✨ Todo</button>
+                    <button onclick="filtrarMenu('desayunos', event)" class="menu-btn bg-white text-stone-600 border px-4 py-2 rounded-full font-medium text-xs whitespace-nowrap">🍳 Desayunos</button>
+                    <button onclick="filtrarMenu('almuerzos', event)" class="menu-btn bg-white text-stone-600 border px-4 py-2 rounded-full font-medium text-xs whitespace-nowrap">🍲 Almuerzos</button>
+                    <button onclick="filtrarMenu('fritos', event)" class="menu-btn bg-white text-stone-600 border px-4 py-2 rounded-full font-medium text-xs whitespace-nowrap">🥟 Fritos</button>
+                </div>
+                <div id="grid-menu" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-32"></div>
+            </div>
+        </main>
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 shadow-xl z-50"><div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-4 w-full"><div><p class="text-[10px] uppercase font-bold text-slate-400">Total + Envío</p><p id="carrito-total" class="text-xl font-bold text-slate-800">$0</p></div><button id="btn-enviar" onclick="despacharPedidoCliente()" disabled class="flex-1 md:max-w-xs bg-amber-950 text-amber-400 font-bold py-3.5 px-6 rounded-2xl text-sm text-center">Selecciona Productos</button></div></div>
+    </div>
+
+    <div id="popup-qr" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-2xl p-6 text-center max-w-xs w-full relative"><button onclick="cerrarQR()" class="absolute top-2 right-4 text-2xl font-bold text-stone-400">&times;</button><div id="qrcode" class="flex justify-center p-2 bg-stone-50 rounded-xl mb-3"></div></div></div>
+    <div id="popup-pwa" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-2xl p-6 max-w-xs w-full relative"><button onclick="cerrarPWA()" class="absolute top-2 right-4 text-2xl font-bold text-stone-400">&times;</button><div class="text-xs space-y-2 text-stone-600"><p><strong>iPhone:</strong> Compartir <i class="fas fa-share-from-square"></i> y "Agregar a inicio".</p></div></div></div>
+
+    <script>
+        const URL_API_GENERAL = "https://script.google.com/macros/s/AKfycbzXrdo3HcZE4HThKldaVfvoIV7pl-ptpRbV_QNi1Qk9ARVrHYsBFXFd6IoFLtoim3VS/exec";
+        let baseDeDatosMenu = [], carrito = {}, catFiltro = "todos", estrellasSeleccionadas = 0;
+
+        function irAMenu() { document.getElementById('vista-inicio').classList.replace('block', 'hidden'); document.getElementById('vista-menu').classList.replace('hidden', 'block'); if(baseDeDatosMenu.length===0) descargarPlatos(); }
+        function irAInicio() { document.getElementById('vista-menu').classList.replace('block', 'hidden'); document.getElementById('vista-inicio').classList.replace('hidden', 'block'); }
+        function abrirQR() { document.getElementById('popup-qr').classList.remove('hidden'); document.getElementById('qrcode').innerHTML=""; new QRCode(document.getElementById('qrcode'), {text: window.location.href, width: 160, height: 160}); }
+        function cerrarQR() { document.getElementById('popup-qr').classList.add('hidden'); }
+        function abrirPWA() { document.getElementById('popup-pwa').classList.remove('hidden'); }
+        function cerrarPWA() { document.getElementById('popup-pwa').classList.add('hidden'); }
+        document.getElementById('vcard-btn').href = `data:text/vcard;charset=utf-8,${encodeURIComponent("BEGIN:VCARD\nVERSION:3.0\nFN:The Cappuccino\nTEL;TYPE=CELL:+573112148479\nEND:VCARD")}`;
+
+        function setStars(num) {
+            estrellasSeleccionadas = num; const stars = document.querySelectorAll('.star-icon');
+            stars.forEach((star, idx) => { if(idx < num) { star.className = "star-icon fas fa-star text-amber-400 cursor-pointer"; } else { star.className = "star-icon fas fa-star text-stone-300 cursor-pointer"; } });
+        }
+        function descargarConfiguracionYEstrellas() {
+            const sc = document.createElement('script'); sc.src = `${URL_API_GENERAL}?tabla=config&callback=recibirConfiguracion`; document.body.appendChild(sc);
+            const sr = document.createElement('script'); sr.src = `${URL_API_GENERAL}?tabla=resenas&callback=recibirEstrellasDirectorio`; document.body.appendChild(sr);
+        }
+        function recibirConfiguracion(config) {
+            if(config && config.url_flyer && config.url_flyer !== "N/A") {
+                document.getElementById('img-flyer-promocional').src = config.url_flyer;
+                document.getElementById('container-flyer-promocional').classList.remove('hidden');
+            }
+        }
+        function recibirEstrellasDirectorio(res) { document.getElementById('label-promedio-header').textContent = res.promedio; document.getElementById('label-conteo-header').textContent = `(${res.total_resenas} Valoraciones)`; }
+
+        function procesarYEnviarResena() {
+            const nombre = document.getElementById('resena-nombre').value; const comentario = document.getElementById('resena-comentario').value; const archivoInput = document.getElementById('resena-foto-input').files[0];
+            if(!nombre || estrellasSeleccionadas === 0) { alert("Ingresa tu nombre y calificación."); return; }
+            if(archivoInput) {
+                const lector = new FileReader(); lector.onload = function(e) { enviarResenaFinal(nombre, comentario, e.target.result); }; lector.readAsDataURL(archivoInput);
+            } else { enviarResenaFinal(nombre, comentario, ""); }
+        }
+        async function enviarResenaFinal(nombre, comentario, fotoBase64) {
+            const payload = { accion: "registrar_resena", cliente: nombre, estrellas: estrellasSeleccionadas, comentario: comentario, fotoBase64: fotoBase64 };
+            await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("¡Muchas gracias por calificar!");
+            document.getElementById('resena-nombre').value = ""; document.getElementById('resena-comentario').value = ""; document.getElementById('resena-foto-input').value = ""; setStars(0); descargarConfiguracionYEstrellas();
+        }
+
+        function descargarPlatos() { const script = document.createElement('script'); script.src = `${URL_API_GENERAL}?tabla=menu&callback=recibirMenu`; document.body.appendChild(script); }
+        function recibirMenu(d) { baseDeDatosMenu = d; pintarPlatos(d); }
+        
+        function pintarPlatos(lista) {
+            const grid = document.getElementById('grid-menu'); grid.innerHTML = "";
+            const filtrados = lista.filter(p => catFiltro === "todos" || p.categoria === catFiltro);
+            filtrados.forEach(plato => {
+                const cant = carrito[plato.id] ? carrito[plato.id].cantidad : 0;
+                const card = document.createElement('div'); card.className = "bg-white rounded-2xl p-3 flex gap-4 items-center border border-stone-100 shadow-2xs";
+                card.innerHTML = `<img src="${plato.imagen}" class="w-16 h-16 rounded-xl object-cover flex-shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-stone-800 text-sm truncate">${plato.nombre}</h3>
+                        <p class="text-[10px] text-stone-400 leading-tight mt-0.5">${plato.descripcion || 'Sabor tradicional garantizado.'}</p>
+                        <p class="font-bold text-amber-950 text-sm mt-1">$${Number(plato.precio).toLocaleString('es-CO')}</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-stone-50 p-1 rounded-lg border">
+                        <button onclick="cambiarCant('${plato.id}', -1)" class="w-7 h-7 font-bold text-sm">-</button>
+                        <span id="cant-${plato.id}" class="w-4 text-center text-xs font-bold">${cant}</span>
+                        <button onclick="cambiarCant('${plato.id}', 1)" class="w-7 h-7 font-bold text-sm">+</button>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+        function cambiarCant(id, delta) {
+            const p = baseDeDatosMenu.find(x => x.id === id); if(!p) return;
+            if(!carrito[id]) carrito[id] = { nombre: p.nombre, precio: Number(p.precio), cantidad: 0 };
+            carrito[id].cantidad += delta; if(carrito[id].cantidad <= 0) delete carrito[id];
+            document.getElementById(`cant-${id}`).textContent = carrito[id] ? carrito[id].cantidad : 0;实时计算; calcularTotal();
+        }
+        function calcularTotal() {
+            let sub = 0, items = 0; for(const id in carrito) { sub += carrito[id].precio * carrito[id].cantidad; items += carrito[id].cantidad; }
+            if(document.getElementById('tipo-pedido').value === "Domicilio" && items > 0) sub += 3000;
+            document.getElementById('carrito-total').textContent = `$${sub.toLocaleString('es-CO')}`;
+            document.getElementById('btn-enviar').disabled = items === 0;
+        }
+        function filtrarMenu(cat, event) { catFiltro = cat; document.querySelectorAll('.menu-btn').forEach(b => b.className = "menu-btn bg-white text-stone-600 border px-4 py-2 rounded-full font-medium text-xs whitespace-nowrap"); event.currentTarget.className = "menu-btn active bg-amber-950 text-white px-5 py-2 rounded-full font-medium text-xs whitespace-nowrap"; pintarPlatos(baseDeDatosMenu); }
+        async function despacharPedidoCliente() {
+            const btn = document.getElementById('btn-enviar'); const tipo = document.getElementById('tipo-pedido').value; const pago = document.getElementById('pago-pedido').value; const nombre = document.getElementById('nombre-cliente').value; const dir = document.getElementById('dir-cliente').value; const tel = document.getElementById('tel-cliente').value; const obs = document.getElementById('obs-cliente').value;
+            if(!nombre || !tel || (tipo === "Domicilio" && !dir)) { alert("Ingresa tus datos completos."); return; }
+            btn.disabled = true; btn.textContent = "Registrando...";
+            let detallesArray = [], totalGeneral = 0; for(const id in carrito) { detallesArray.push(`${carrito[id].cantidad}x ${carrito[id].nombre}`); totalGeneral += carrito[id].precio * carrito[id].cantidad; }
+            if(tipo === "Domicilio") totalGeneral += 3000;
+            const payload = { origen: "cliente", detalles: detallesArray.join(" + "), tipo: tipo, total: totalGeneral, cliente: nombre, direccion: dir, whatsapp: tel, metodo_pago: pago, observaciones: obs };
+            try {
+                await fetch(URL_API_GENERAL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+                const msgWa = `*NUEVO PEDIDO - THE CAPPUCCINO*\n\n• *Cliente:* ${nombre}\n• *Entrega:* ${tipo}\n• *Pedido:* ${detallesArray.join(" + ")}\n• *Pago:* ${pago}\n• *Total:* $${totalGeneral.toLocaleString('es-CO')}\n• *Obs:* ${obs || 'Ninguna'}`;
+                window.open(`https://wa.me/57${tel}?text=${encodeURIComponent(msgWa)}`, '_blank');
+                carrito = {}; calcularTotal(); irAInicio();
+            } catch(e) { alert("Error."); btn.disabled = false; }
+        }
+        document.addEventListener('DOMContentLoaded', descargarConfiguracionYEstrellas);
+    </script>
+</body>
+</html>
