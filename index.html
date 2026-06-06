@@ -113,7 +113,7 @@
     <div id="popup-pwa" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-2xl p-6 max-w-xs w-full relative"><button onclick="cerrarPWA()" class="absolute top-2 right-4 text-2xl font-bold text-stone-400">&times;</button><div class="text-xs space-y-2 text-stone-600"><p><strong>iPhone:</strong> Compartir <i class="fas fa-share-from-square"></i> y "Agregar a inicio".</p></div></div></div>
 
     <script>
-        const URL_API_GENERAL = "https://script.google.com/macros/s/AKfycbzXrdo3HcZE4HThKldaVfvoIV7pl-ptpRbV_QNi1Qk9ARVrHYsBFXFd6IoFLtoim3VS/exec";
+        const URL_API_GENERAL = "https://script.google.com/macros/s/AKfycbzugliF1PnvQef4rkuubS9zxdDtlAd96ic0tN9QsuxQJYqyehRqQI3nJN2ebkeSIkg-sw/exec";
         let baseDeDatosMenu = [], carrito = {}, catFiltro = "todos", estrellasSeleccionadas = 0;
 
         function irAMenu() { document.getElementById('vista-inicio').classList.replace('block', 'hidden'); document.getElementById('vista-menu').classList.replace('hidden', 'block'); if(baseDeDatosMenu.length===0) descargarPlatos(); }
